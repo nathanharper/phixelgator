@@ -434,11 +434,19 @@ def getClosestColor(color, palette):
       closestColor = c
   return closestColor
 
-def phixelate(img, palette):
+def processBlock(x, y, width, height):
+  return True
+
+def phixelate(img, palette, blockSize):
   width, height = img.size
-  print width, height
+  blockWidth = math.ceil(width / blockSize)
+  blockHeight = math.ceil(height / blockSize)
+  totalBlocks = blockWidth * blockHeight
+  for x in blockWidth:
+    for y in blockHeight:
+      processBlock(x + (x * blockWidth), y + (y * blockHeight), width, height)
   # pixels = img.load()
-  return "hey"
+  return True
 
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
