@@ -1,636 +1,486 @@
 #!/usr/bin/env python
-import os, sys, argparse
+import os, sys, argparse, math, json
+from PIL import Image
 
-def phixelate(input, palette):
-  print("hey")
+PALETTES = {
+  'tetris' : [
+    [50,194,255],
+    [160,26,204],
+    [20,18,167],
+    [66,64,255],
+    [21,95,217],
+    [100,176,255],
+    [192,223,255],
+    [72,205,222],
+    [228,229,148],
+    [255,129,112],
+    [255,255,255],
+    [0,0,0]
+  ],
+  'mario' : [
+    [146,144,255],
+    [13,147,0],
+    [136,216,0],
+    [107,109,0],
+    [234,158,34],
+    [153,78,0],
+    [255,204,197],
+    [181,49,32],
+    [255,255,255],
+    [0,0,0]
+  ],
+  'sega' : [
+    [0,0,0],
+    [85,0,0],
+    [170,0,0],
+    [255,0,0],
+    [0,0,85],
+    [85,0,85],
+    [170,0,85],
+    [255,0,85],
+    [0,85,0],
+    [85,85,0],
+    [170,85,0],
+    [255,85,0],
+    [0,85,85],
+    [85,85,85],
+    [170,85,85],
+    [255,85,85],
+    [0,170,0],
+    [85,170,0],
+    [170,170,0],
+    [255,170,0],
+    [0,170,85],
+    [85,170,85],
+    [170,170,85],
+    [255,170,85],
+    [0,255,0],
+    [85,255,0],
+    [170,255,0],
+    [255,255,0],
+    [0,255,85],
+    [85,255,85],
+    [170,255,85],
+    [255,255,85],
+    [0,0,170],
+    [85,0,170],
+    [170,0,170],
+    [255,0,170],
+    [0,0,255],
+    [85,0,255],
+    [170,0,255],
+    [255,0,255],
+    [0,85,170],
+    [85,85,170],
+    [170,85,170],
+    [255,85,170],
+    [0,85,255],
+    [85,85,255],
+    [170,85,255],
+    [255,85,255],
+    [0,170,170],
+    [85,170,170],
+    [170,170,170],
+    [255,170,170],
+    [0,170,255],
+    [85,170,255],
+    [170,170,255],
+    [255,170,255],
+    [0,255,170],
+    [85,255,170],
+    [170,255,170],
+    [255,255,170],
+    [0,255,255],
+    [85,255,255],
+    [170,255,255],
+    [255,255,255]
+  ],
+  'nes' : [
+    [124, 124, 124],
+    [0, 0, 252],
+    [0, 0, 188],
+    [68, 40, 188],
+    [148, 0, 132],
+    [168, 0, 32],
+    [168, 16, 0],
+    [136, 20, 0],
+    [80, 48, 0],
+    [0, 120, 0],
+    [0, 104, 0],
+    [0, 88, 0],
+    [0, 64, 88],
+    [0, 0, 0],
+    [188, 188, 188],
+    [0, 120, 248],
+    [0, 88, 248],
+    [104, 68, 252],
+    [216, 0, 204],
+    [228, 0, 88],
+    [248, 56, 0],
+    [228, 92, 16],
+    [172, 124, 0],
+    [0, 184, 0],
+    [0, 168, 0],
+    [0, 168, 68],
+    [0, 136, 136],
+    [248, 248, 248],
+    [60, 188, 252],
+    [104, 136, 252],
+    [152, 120, 248],
+    [248, 120, 248],
+    [248, 88, 152],
+    [248, 120, 88],
+    [252, 160, 68],
+    [248, 184, 0],
+    [184, 248, 24],
+    [88, 216, 84],
+    [88, 248, 152],
+    [0, 232, 216],
+    [120, 120, 120],
+    [252, 252, 252],
+    [164, 228, 252],
+    [184, 184, 248],
+    [216, 184, 248],
+    [248, 184, 248],
+    [248, 164, 192],
+    [240, 208, 176],
+    [252, 224, 168],
+    [248, 216, 120],
+    [216, 248, 120],
+    [184, 248, 184],
+    [184, 248, 216],
+    [0, 252, 252],
+    [216, 216, 216]
+  ],
+  'kungfu' : [
+    [160,26,204],
+    [146,144,255],
+    [192,223,255],
+    [189,244,171],
+    [56,135,0],
+    [136,216,0],
+    [234,158,34],
+    [247,216,165],
+    [181,49,32],
+    [255,255,255],
+    [0,0,0]
+  ],
+  'intellivision' : [
+    [0,0,0],
+    [164,150,255],
+    [255,61,16],
+    [181,26,88],
+    [84,110,0],
+    [0,167,86],
+    [255,180,31],
+    [201,207,171],
+    [0,45,255],
+    [36,184,255],
+    [255,78,87],
+    [189,172,200],
+    [56,107,63],
+    [117,204,128],
+    [250,234,80],
+    [255,255,255]
+  ],
+  'hyrule' : [
+    [66,64,255],
+    [146,144,255],
+    [13,147,0],
+    [136,216,0],
+    [234,158,34],
+    [247,216,165],
+    [153,78,0],
+    [255,204,197],
+    [181,49,32],
+    [255,255,255],
+    [102,102,102],
+    [0,0,0]
+  ],
+  'grayscale' : [
+    [0, 0, 0],
+    [20, 20, 20],
+    [40, 40, 40],
+    [60, 60, 60],
+    [80, 80, 80],
+    [100, 100, 100],
+    [120, 120, 120],
+    [140, 140, 140],
+    [160, 160, 160],
+    [180, 180, 180],
+    [200, 200, 200],
+    [220, 220, 220],
+    [240, 240, 240],
+    [255, 255, 255]
+  ],
+  'gameboy' : [
+    [15,56,15],
+    [48,98,48],
+    [139,172,15],
+    [155,188,15]
+  ],
+  'flashman' : [
+    [50,194,255],
+    [160,26,204],
+    [20,18,167],
+    [66,64,255],
+    [21,95,217],
+    [100,176,255],
+    [192,223,255],
+    [72,205,222],
+    [228,229,148],
+    [255,129,112],
+    [255,255,255],
+    [0,0,0]
+  ],
+  'contra' : [
+    [66,64,255],
+    [21,95,217],
+    [100,176,255],
+    [56,135,0],
+    [136,216,0],
+    [51,53,0],
+    [188.190,0],
+    [107,109,0],
+    [247,216,165],
+    [255,129,112],
+    [255,204,197],
+    [181,49,32],
+    [255,255,255],
+    [173,173,173],
+    [0,0,0]
+  ],
+  'commodore64' : [
+    [0,0,0],
+    [255,255,255],
+    [136,57,50],
+    [103,182,189],
+    [139,63,150],
+    [85,160,73],
+    [64,49,141],
+    [191,206,114],
+    [139,84,41],
+    [87,66,0],
+    [184,105,98],
+    [80,80,80],
+    [120,120,120],
+    [148,224,137],
+    [120,105,196],
+    [159,159,159]
+  ],
+  'atari2600' : [
+    [0,0,0],
+    [68,68,0],
+    [112,40,0],
+    [132,24,0],
+    [136,0,0],
+    [120,0,92],
+    [72,0,120],
+    [20,0,132],
+    [0,0,136],
+    [0,24,124],
+    [0,44,92],
+    [0,64,44],
+    [0,60,0],
+    [20,56,0],
+    [44,48,0],
+    [68,40,0],
+    [64,64,64],
+    [100,100,16],
+    [132,68,20],
+    [152,52,24],
+    [156,32,32],
+    [140,32,116],
+    [96,32,144],
+    [48,32,152],
+    [28,32,156],
+    [28,56,144],
+    [28,76,120],
+    [28,92,72],
+    [32,92,32],
+    [52,92,28],
+    [76,80,28],
+    [100,72,24],
+    [108,108,108],
+    [132,132,36],
+    [152,92,40],
+    [172,80,48],
+    [176,60,60],
+    [160,60,136],
+    [120,60,164],
+    [76,60,172],
+    [56,64,176],
+    [56,84,168],
+    [56,104,144],
+    [56,124,100],
+    [64,124,64],
+    [80,124,56],
+    [104,112,52],
+    [132,104,48],
+    [144,144,144],
+    [160,160,52],
+    [172,120,60],
+    [192,104,72],
+    [192,88,88],
+    [176,88,156],
+    [140,88,184],
+    [104,88,192],
+    [80,92,192],
+    [80,112,188],
+    [80,132,172],
+    [80,156,128],
+    [92,156,92],
+    [108,152,80],
+    [132,140,76],
+    [160,132,68],
+    [176,176,176],
+    [184,184,64],
+    [188,140,76],
+    [208,128,92],
+    [208,112,112],
+    [192,112,176],
+    [160,112,204],
+    [124,112,208],
+    [104,116,208],
+    [104,136,204],
+    [104,156,192],
+    [104,180,148],
+    [116,180,116],
+    [132,180,104],
+    [156,168,100],
+    [184,156,88],
+    [200,200,200],
+    [208,208,80],
+    [204,160,92],
+    [224,148,112],
+    [224,136,136],
+    [208,132,192],
+    [180,132,220],
+    [148,136,224],
+    [124,140,224],
+    [124,156,220],
+    [124,180,212],
+    [124,208,172],
+    [140,208,140],
+    [156,204,124],
+    [180,192,120],
+    [208,180,108],
+    [220,220,220],
+    [232,232,92],
+    [220,180,104],
+    [236,168,128],
+    [236,160,160],
+    [220,156,208],
+    [196,156,236],
+    [168,160,236],
+    [144,164,236],
+    [144,180,236],
+    [144,204,232],
+    [144,228,192],
+    [164,228,164],
+    [180,228,144],
+    [204,212,136],
+    [232,204,124],
+    [236,236,236],
+    [252,252,104],
+    [232,204,124],
+    [252,188,148],
+    [252,180,180],
+    [236,176,224],
+    [212,176,252],
+    [188,180,252],
+    [164,184,252],
+    [164,200,252],
+    [164,224,252],
+    [164,252,212],
+    [184,252,184],
+    [200,252,164],
+    [224,236,156],
+    [252,224,140]
+  ],
+  'appleii' : [
+    [0,0,0],
+    [108,41,64],
+    [64,53,120],
+    [217,60,240],
+    [19,87,64],
+    [128,128,128],
+    [38,151,240],
+    [191,180,248],
+    [64,75,7],
+    [217,104,15],
+    [236,168,191],
+    [38,195,15],
+    [191,202,135],
+    [147,214,191],
+    [255,255,255]
+  ]
+}
+
+def colorDiff(c1, c2):
+  return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
+
+def averagePixel(data):
+  return 1
+
+def getClosestColor(color, palette):
+  "Find the closest color in the current palette. TODO: optimize!"
+  minDelta = 255*3
+  closestColor = [0,0,0]
+  for c in palette:
+    delta = colorDiff(color, c)
+    if delta < minDelta:
+      minDelta = delta
+      closestColor = c
+  return closestColor
+
+def phixelate(img, palette):
+  width, height = img.size
+  print width, height
+  # pixels = img.load()
   return "hey"
 
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
-      description="Create \"pixel art\" from a photo", \
-      prog='phixel', \
-      epilog="Disclaimer: this does not \"really\" make pixel art, it just \
-        reduces the image resolution with preset color palettes.")
-  parse.add_argument('-p', '--palette', \
-      choices=['all','mario','flash','zelda','kungfu','tetris','contra'], default='all', \
-      help="The color palette to use")
-  parse.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin, \
+      description='Create "pixel art" from a photo', prog='phixel', \
+      epilog="Disclaimer: this does not *really* make pixel art, it just reduces the image resolution with preset color palettes.")
+  parse.add_argument('-b', '--block', type=int, help="Block size for phixelization.")
+  parse.add_argument('-p', '--palette', choices=['mario','flashman','zelda','kungfu','tetris','contra'], \
+      help="The color palette to use.")
+  parse.add_argument('-c', '--custom', type=argparse.FileType('r', encoding="UTF-8"), \
+      help="A custom palette file to use instead of the defaults.")
+  parse.add_argument('-d', '--dimensions', \
+      help="The dimensions of the new image (format: /\d+x\d+/i)")
+  parse.add_argument('-t', '--type', choices=['png'], default='png', \
+      help="Output file type. Right now, only png is supported... But more to come :^D !!!??!!")
+  parse.add_argument('-l', '--no-lock', metavar="nolock", help="Don't preserve image ratio when resizing.")
+  parse.add_argument('infile', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, \
       help="the input file (defaults to stdin)")
-  parse.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout, \
+  parse.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout, \ # todo: needs to switch to binary
       help="the output file (defaults to stdout)")
   args = parse.parse_args()
+  # print(args)
+
+  """ Try to load the custom palette if provided:
+      Should be formatted as json similar to the
+      default palette definitions in this script. """
+  palette = False
+  if args.custom is not None:
+    palette = json.loads(args.custom.read())
+    args.custom.close()
+  elif args.palette is not None: 
+    palette = PALETTES[args.palette]
 
   try:
-    phixel = phixelate(args.infile.read(), args.palette)
-  except Error:
-    print("something bad happened")
+    img = Image.open(args.infile)
+    phixel = phixelate(img, palette)
+  except Exception as e:
+    print e
     args.infile.close()
     args.outfile.close()
     sys.exit(1)
 
   args.infile.close()
-  args.outfile.write(phixel)
+  # args.outfile.write(phixel)
   args.outfile.close()
   sys.exit(0)
-
-# var canvas = null;
-# var originalImage = null;
-# var blockSize = null;
-
-# var file = null;
-# var fileReader = null;
-
-# var selectedPalette = null;
-# var usePreset = true;
-# var presetPalettes = [];
-# var presetMore = false;
-
-# var processedNumBlocks = 0;
-# var totalNumBlocks = 0;
-# var renderInProgress = false;
-
-# var shareLink = null;
-# var shareFunc = null;
-
-# var useFile = false;
-# var useURL = false;
-
-# var embedLogo;
-
-# //entry point
-# $(document).ready(function() {
-# 	/*
-# 	var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-# 	if(!is_chrome) {
-# 		alert("Please use Google Chrome for best results");
-# 	}
-# 	*/
-	
-# 	embedLogo = new Image();
-# 	embedLogo.src = "img/spt_logo_150x150.png";
-	
-# 	$("#blockSizeInput").val("8");
-	
-# 	$("#fileInput").change(function(event) {
-# 		blockSize = null;
-# 		file = event.currentTarget.files[0];
-		
-# 		//preset the filename
-# 		$("#filename").val(file.name);
-			
-# 		//preset the type if possible
-# 		var idx = file.name.lastIndexOf(".");
-# 		if(idx != -1) {
-# 			var fileExt = file.name.substring(idx+1, file.name.length);
-# 			if(fileExt.toUpperCase() == "png") {
-# 				//todo
-# 			}
-# 		}
-		
-# 		updateFilename();
-# 		fileReader = new FileReader();
-# 		fileReader.onload = fileLoadHandler;
-# 		fileReader.readAsDataURL(file);
-# 	});
-	
-# 	$("input[name=filetype]").change(updateFilename);
-# 	$("#url_input").change(function() {
-# 		useFile = false;
-# 	});
-	
-# 	//handler for upload button
-# 	$("#upload").click(function() {
-# 		if(useFile) {
-# 			setImage(img);
-# 		}
-# 		else {
-# 			urlLoadHandler();
-# 		}
-# 	});
-	
-# 	//handler for render button
-# 	$("#generateButton").click(function() {
-# 		if(renderInProgress) {
-# 			renderInProgress = false;
-# 			$("#generateButton").html("RENDER");
-# 		}
-# 		else {
-# 			$("#generateButton").html("STOP");
-# 			renderInProgress = true;
-# 			if(canvas == null) {
-# 				alert("please select a file first");
-# 				return;
-# 			}
-# 			try {
-# 				blockSize = parseInt($("#blockSizeInput").val());
-# 			}
-# 			catch(err) {
-# 				alert("please enter a valid block size");
-# 			}
-# 			setImage(originalImage);
-# 			processCanvas(canvas[0], blockSize);
-# 		}		
-# 	});
-	
-# 	//handler for save button
-# 	$("#saveImageButton").click(function() {
-# 		var width = parseInt($("#save_width").val());
-# 		var height  = parseInt($("#save_height").val());
-# 		var filename = $("#filename").val();
-# 		if($("#png")[0].checked) {
-# 			Canvas2Image.saveAsPNG(canvas[0], false, width, height, filename);
-# 		}
-# 		else if($("#jpg")[0].checked) {
-# 			Canvas2Image.saveAsJPEG(canvas[0], false, width, height, filename);
-# 		}
-# 		else {
-# 			Canvas2Image.saveAsBMP(canvas[0], false, width, height, filename);
-# 		}
-# 	});
-	
-# 	$("#save_width").change(function() {
-# 		if($("#lock_ratio").attr("checked") != null) {
-# 			adjustHeight();
-# 		}
-# 	});
-# 	$("#save_height").change(function() {
-# 		if($("#lock_ratio").attr("checked") != null) {
-# 			adjustWidth();
-# 		}
-# 	});
-	
-# 	//handler for fit to screen checkbox	
-# 	$("#fit_to_screen").change(function() {
-# 		fitToScreen();
-# 	});
-	
-# 	//handler for zoom
-# 	$("#zoom_range").change(function() {
-# 		setCanvasZoom();
-# 	});
-	
-# 	//handler for creates palette button
-# 	$("#create_palette").click(function() {
-# 		var newPalette = CustomPalette.addNewPalette();
-# 		addPalette(newPalette, true);
-# 	});
-	
-# 	CustomPalette.load();
-# 	var i;
-# 	for(i = 0; i < CustomPalette.myPalettes.length; i++) {
-# 		var palette = CustomPalette.myPalettes[i];
-# 		addPalette(palette);
-# 	}
-	
-# 	presetPalettes.push(loadPresetPalette(SUPERMARIOBROS_PALETTE));	
-# 	presetPalettes.push(loadPresetPalette(FLASHMAN_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(HYRULE_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(KUNGFU_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(TETRIS_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(CONTRA_PALETTE));	
-# 	presetPalettes.push(loadPresetPalette(GRAYSCALE_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(NES_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(APPLE_II_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(GAMEBOY_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(COMMODORE64_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(INTELLIVISION_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(SEGA_MASTER_SYSTEM_PALETTE));
-# 	presetPalettes.push(loadPresetPalette(ATARI2600_PALETTE));
-	
-# 	$("input[name=colorpalette]").change(function(ev) {
-# 		if(selectedPalette != null && selectedPalette.isCustom) {
-# 			$("#" + selectedPalette.name).removeClass("selected");
-# 		}
-# 		var idx = parseInt(ev.currentTarget.id);
-# 		if(idx == -1) {
-# 			selectedPalette = null;
-# 		}
-# 		else {
-# 			selectedPalette = presetPalettes[idx];
-# 		}
-# 	});
-	
-# 	//handler for clicking on the preset pelette
-# 	$("#preset_palettes").click(function() {
-# 		usePreset = true;
-# 	});
-	
-# 	//handler for clicking on the custom pelette
-# 	$("#custom_palettes").click(function() {
-# 		usePreset = false;
-# 	});
-	
-# 	//handler for click on more/less button for preset palettes
-# 	$("#more-less").click(function() {
-# 		if(presetMore) {
-# 			$(this).html("more");
-# 		}
-# 		else {
-# 			$(this).html("less");
-# 		}
-# 		$("#more-less-btns").toggleClass("show");
-# 	});
-	
-# 	$("#addcolorbutton").click(function() {
-# 		if(!usePreset && selectedPalette != null && selectedPalette.isCustom) {
-# 			var color = Color.fromHexString($("#colorpicker").val());
-# 			if(selectedPalette.addColor(color)) {
-# 				var colorElem = createColorElem(selectedPalette, color);
-# 				$("#" + selectedPalette.name + " .custom_palette_colors").append(colorElem);
-# 			}
-# 			else {
-# 				alert("Please add a unique color to this palette");
-# 			}
-# 		}
-# 		else {
-# 			alert("Please select a custom palette first");
-# 		}
-# 	});
-	
-# 	//embed logo
-# 	$("#remove_logo").change(function() {
-# 		if($("#remove_logo").attr("checked") != null) {
-# 			console.log("Please support the development of Super Pixel Time by donating");
-# 		}
-# 	});
-	
-# 	//sharing 
-# 	$("#generate_link").click(function() {
-# 		$.post("upload_file.php", {
-# 			data: canvas[0].toDataURL()
-# 		}, function(filename) {
-# 			shareLink = getRootURL() + "?i="+ filename;
-# 			var anchor = $("<a/>");
-# 			anchor.attr("target", "_blank");
-# 			anchor.attr("href", shareLink);
-# 			anchor.html(shareLink);
-# 			shareLinkElem = $("#share_link");
-# 			shareLinkElem.empty();
-# 			shareLinkElem.append(anchor);
-# 			if(shareFunc != null) {
-# 				shareFunc();
-# 				shareFunc = null;
-# 			}
-# 		});
-# 	});
-	
-# 	//check query param and show img
-# 	var split = document.URL.split("?i=");
-# 	if(split.length > 1) {
-# 		var filename = split[1];
-# 		var url = getRootURL() + "i/" + filename;
-# 		var $img = $("<img/>");
-# 		$img.attr("src", url);
-# 		var $overlay = $("<div/>").addClass("link_img_overlay");
-# 		var $container = $("<div/>").addClass("container");
-# 		$container.append($img);
-# 		$overlay.append($container);
-# 		$("#wrapper").append($overlay);
-# 		$overlay.click(function(ev) {
-# 			$(ev.currentTarget).fadeOut();
-# 		})
-# 	}
-	
-# 	$("#facebook_share").click(function() {
-# 		if(shareLink == null) {
-# 			shareFunc = facebookShare;
-# 			$("#generate_link").click();
-# 		}
-# 		else {
-# 			facebookShare();
-# 		}
-# 	});
-	
-# 	$("#twitter_share").click(function() {
-# 		if(shareLink == null) {
-# 			shareFunc = twitterShare;
-# 			$("#generate_link").click();
-# 		}
-# 		else {
-# 			twitterShare();
-# 		}
-# 	});
-# });
-
-# function getRootURL() {
-# 	return document.URL.split("?")[0];
-# }
-
-# function facebookShare() {
-# 	window.open("https://www.facebook.com/sharer.php?t=Super Pixel Time&u=" + shareLink);
-# }
-
-# function twitterShare() {
-# 	window.open("https://twitter.com/intent/tweet?url=" + shareLink + "&via=superpixeltime&text=pixelate your life&hashtags=superpixeltime");
-# }
-
-# /**
-#  * adds given palette model to the view
-#  */
-# function addPalette(palette, select) {
-# 	var paletteElem = $("<div/>").addClass("custom_palette").attr("id", palette.name);
-# 	paletteElem.click(function() {
-# 		if(selectedPalette != null) {
-# 			$("#" + selectedPalette.name).removeClass("selected");
-# 		}
-# 		selectedPalette = palette;
-# 		$("#" + selectedPalette.name).addClass("selected");
-# 	});
-# 	$("#custom_palette_container").append(paletteElem);
-	
-# 	if(select) {
-# 		paletteElem.click();
-# 	}
-	
-# 	paletteHeader = $("<div/>").addClass("custom_palette_header");
-# 	paletteName = $("<span/>").addClass("custom_palette_name").html(palette.name);
-# 	paletteName.click(function() {
-# 		var newName = prompt("Rename this palette?", palette.name);
-# 		if(newName != null && palette.name != newName) {
-# 			$(this).html(newName);
-# 			$("#" + palette.name).attr("id", newName);
-# 			palette.changeName(newName);
-# 		}
-# 	});
-	
-# 	paletteDelete = $("<span/>").addClass("custom_palette_delete").html("delete");
-# 	paletteDelete.click(function() {
-# 		if(confirm("Are you sure you want to delete " + palette.name)) {
-# 			CustomPalette.delete(palette.name);
-# 			paletteElem.remove();
-# 			selectedPalette = null;
-# 		}
-# 	});
-# 	paletteHeader.append(paletteName, paletteDelete);
-	
-# 	paletteColors = $("<div/>").addClass("custom_palette_colors");
-# 	paletteElem.append(paletteHeader, paletteColors);
-# 	var i;
-# 	for(i = 0; i < palette.colors.length; i++) {
-# 		var color = palette.colors[i];
-# 		var colorElem = createColorElem(palette, color);
-# 		paletteColors.append(colorElem);
-# 	}
-# }
-
-# function createColorElem(palette, color) {
-# 	var colorElem = $("<span/>").addClass("color").css('background-color', color.toBackgroundColorString());
-# 	colorElem.click(function() {
-# 		if(confirm("remove this color?")) {
-# 			$(this).remove();
-# 			palette.removeColor(color);
-# 		}
-# 	});
-# 	return colorElem;
-# }
-
-# function fitToScreen() {
-# 	if($("#fit_to_screen").attr("checked") != null) {
-# 		$("canvas").css({'width':'100%'});
-# 		$("#zoom_range_container").hide();
-# 	}
-# 	else {
-# 		setCanvasZoom();
-# 		$("#zoom_range_container").show();
-# 	}
-# }
-
-# function setCanvasZoom() {
-# 	var zoomValue = $("#zoom_range").val();
-# 	$("#zoom_value").html(zoomValue + "%");
-# 	var zoomValueNum = parseInt(zoomValue);
-# 	zoomValueNum /= 100.0;
-# 	var width = originalImage.width * zoomValueNum;
-# 	$("canvas").css({'width':  width + 'px'});
-# }
-
-# function adjustWidth() {
-# 	var height = parseInt($("#save_height").val());
-# 	var width = originalImage.width/originalImage.height * height;
-# 	width = Math.round(width);
-# 	$("#save_width").val(width);
-# }
-
-# function adjustHeight() {
-# 	var width = parseInt($("#save_width").val());
-# 	var height = originalImage.height/originalImage.width * width;
-# 	height = Math.round(height);
-# 	$("#save_height").val(height);
-# }
-
-# function updateFilename() {
-# 	var fileExt = "bmp";
-# 	if($("#png")[0].checked) {
-# 		fileExt = "png";
-# 	}
-# 	else if($("#jpg")[0].checked) {
-# 		fileExt = "jpg";
-# 	}
-# 	var filename = $("#filename").val();
-# 	var idx = filename.lastIndexOf(".");
-# 	if(idx == -1) {
-# 		idx = filename.length;
-# 	}
-# 	filename = filename.substr(0, idx);
-# 	filename += "." + fileExt;
-# 	$("#filename").val(filename);
-# }
-
-# function urlLoadHandler() {
-# 	toggleLoading(true);
-# 	var url = $("#url_input").val();
-# 	$.getImageData({
-# 		url: url,
-# 		success: function(image){
-# 			var split = url.split("/");
-# 			var lastBit = split.length-1;
-# 			if(lastBit > 0) {
-# 				var filename = split[lastBit];
-# 				$("#filename").val(filename);
-# 			}
-# 			setImage(image);
-# 			toggleLoading(false);
-# 		},
-# 		error: function(xhr, text_status) {
-# 			toggleLoading(false);
-# 			alert("Invalid URL. Please enter a valid URL");
-# 		}
-# 	});
-# }
-
-# var img;
-# function fileLoadHandler(e) {
-# 	useFile = true;
-# 	useURL = false;
-# 	img = new Image();
-# 	img.onload = function() {
-# 		useFile = true;
-# 	}
-# 	img.src = e.target.result;
-# }
-
-# function setImage(img) {
-# 	$("#instructions").hide();
-# 	originalImage = img;
-# 	$("#original_width").html(img.width);
-# 	$("#original_height").html(img.height);
-# 	//reset if needed
-# 	if(canvas != null) {
-# 		canvas.remove();
-# 	}
-# 	canvas = $("<canvas/>");
-# 	var canvasElem = canvas[0];
-# 	canvasElem.width = img.width;
-# 	canvasElem.height = img.height;
-# 	$('#save_width').val(img.width);
-# 	$('#save_height').val(img.height);
-	
-# 	var ctx = canvasElem.getContext("2d");
-# 	ctx.drawImage(img, 0, 0);
-# 	$('#mainpane').append(canvas);
-	
-# 	$("#view_options").show();
-# 	fitToScreen();
-# }
-
-# function processCanvas(canvasElem, blockSize) {
-# 	var ctx = canvasElem.getContext("2d");
-# 	var widthBlocks = Math.ceil(canvasElem.width / blockSize);
-# 	var heightBlocks = Math.ceil(canvasElem.height / blockSize);
-# 	totalNumBlocks = widthBlocks * heightBlocks;
-# 	processedNumBlocks = 0;
-# 	for(var x = 0; x < canvasElem.width; x += blockSize) {
-# 		for(var y = 0; y < canvasElem.height; y += blockSize) {
-# 			setTimeout(processBlock(ctx, x, y, canvasElem.width, canvasElem.height), 0);
-# 		}
-# 	}
-# }
-
-# function displayProgress() {
-# 	$("#progress_blocks").html(processedNumBlocks + "/" + totalNumBlocks);
-# 	$("#progress_percentage").html(Math.round(processedNumBlocks/totalNumBlocks * 100) + "%");
-# }
-
-# function processBlock(ctx, x, y, canvasWidth, canvasHeight) {
-# 	return function() {
-# 		if(!renderInProgress) {
-# 			return;
-# 		}
-		
-# 		var width = blockSize;
-# 		if(x + blockSize >= canvasWidth) {
-# 			width = canvasWidth - x;
-# 		}
-		
-# 		var height = blockSize;
-# 		if(y + blockSize >= canvasHeight) {
-# 			height = canvasHeight - y;
-# 		}
-		
-# 		var imageData = ctx.getImageData(x, y, width, height);
-# 		var avgColor = avgPixel(imageData);
-# 		if(selectedPalette != null) {
-# 			avgColor = getClosestColor(avgColor, selectedPalette);
-# 		}
-# 		setImageData(imageData, avgColor);
-# 		ctx.putImageData(imageData, x, y);
-		
-# 		processedNumBlocks++;
-# 		displayProgress();
-		
-# 		if(processedNumBlocks == totalNumBlocks) {
-# 			$("#generateButton").html("RENDER");
-# 			renderInProgress = false;
-			
-# 			//embed logo
-# 			if($("#remove_logo").attr("checked") == null) {
-# 				var size = Math.min(canvasWidth * .15, canvasHeight * .15);
-# 				//size should be between 50 and 150 px
-# 				size = Math.min(size, 150);
-# 				size = Math.max(size, 50);
-# 				var embedX = canvasWidth - size - 10;
-# 				var embedY = canvasHeight - size - 10;
-# 				ctx.drawImage(embedLogo, embedX, embedY, size, size);
-# 			}			
-# 		}
-# 	};
-# }
-
-
-
-# //TODO optimize
-# function getClosestColor(c, palette) {
-# 	var minDelta = 255*3;
-# 	var closestColor;
-# 	var i;
-# 	for(i = 0; i < palette.colors.length; i++) {
-# 		var color = palette.colors[i];
-# 		var delta = c.diff(color.r, color.g, color.b);
-# 		if(delta < minDelta) {
-# 			minDelta = delta;
-# 			closestColor = color;
-# 		}
-# 	}
-# 	return closestColor;
-# }
-
-# function avgPixel(imageData) {
-# 	var c = new Color(0, 0, 0, 0);
-# 	for(var i = 0; i < imageData.data.length; i+=4) {
-# 		c.r += imageData.data[i];
-# 		c.g += imageData.data[i+1];
-# 		c.b += imageData.data[i+2];
-# 		c.a += imageData.data[i+3];
-# 	}
-# 	var numPixels = imageData.data.length / 4;
-# 	c.r = Math.round(c.r / numPixels);
-# 	c.g = Math.round(c.g / numPixels);
-# 	c.b = Math.round(c.b / numPixels);
-# 	c.a = Math.round(c.a / numPixels);
-# 	return c;
-# }
-
-# function setImageData(imageData, c) {
-# 	for(var i = 0; i < imageData.data.length; i+=4) {
-# 		imageData.data[i] = c.r;
-# 		imageData.data[i+1] = c.g;
-# 		imageData.data[i+2] = c.b;
-# 		imageData.data[i+3] = c.a;
-# 	}
-# }
-
-# var loadingInterval = null;
-
-# function toggleLoading(toggle) {
-# 	if(toggle) {
-# 		$("#loading_overlay").fadeIn();
-# 		loadingInterval = setInterval(function() {
-# 			var dots = $("#loading_dots").html();
-# 			if(dots == null) {
-# 				dots = "";
-# 			}
-# 			if(dots.length < 3) {
-# 				dots += ".";
-# 			}
-# 			else {
-# 				dots = "";
-# 			}
-# 			$("#loading_dots").html(dots);
-# 		}, 1000);
-# 	}
-# 	else {
-# 		$("#loading_overlay").fadeOut();
-# 		clearInterval(loadingInterval);
-# 	}
-# }
-
-# function loadPresetPalette(paletteData) {
-# 	var i;
-# 	var colors = [];
-# 	for(i = 0; i < paletteData.colors.length; i++) {
-# 		var colorData = paletteData.colors[i];
-# 		colors.push(new Color(colorData[0], colorData[1], colorData[2]));
-# 	}
-# 	paletteData.colors = colors;
-# 	return paletteData;
-# }
