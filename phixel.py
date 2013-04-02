@@ -418,56 +418,80 @@ PALETTES = {
 }
 
 def colorDiff(c1, c2):
+  "Calculates difference betwixt two colors"
   return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
 
 def averagePixel(data):
-  return 1
+  "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average "
+  numPixels = len(data)
+  r,g,b,a = 0,0,0,0
+  for i in range(numPixels):
+    r += data[i][0]
+    g += data[i][1]
+    b += data[i][2]
+    a += data[i][3]
+  return (int(round(r/numPixels)),
+      int(round(g/numPixels)),
+      int(round(b/numPixels)),
+      int(round(a/numPixels)))
 
 def getClosestColor(color, palette):
   "Find the closest color in the current palette. TODO: optimize!"
   minDelta = 255*3
-  closestColor = [0,0,0]
+  closestColor = (0,0,0)
   for c in palette:
     delta = colorDiff(color, c)
     if delta < minDelta:
       minDelta = delta
       closestColor = c
-  return closestColor
-
-def processBlock(x, y, width, height):
-  return True
+  # preserve the alpha value from the original color, and convert list to tuple
+  return (closestColor[0], closestColor[1], closestColor[2], color[3])
 
 def phixelate(img, palette, blockSize):
+  "initiate conversion"
   width, height = img.size
-  blockWidth = math.ceil(width / blockSize)
-  blockHeight = math.ceil(height / blockSize)
-  totalBlocks = blockWidth * blockHeight
-  for x in blockWidth:
-    for y in blockHeight:
-      processBlock(x + (x * blockWidth), y + (y * blockHeight), width, height)
-  # pixels = img.load()
-  return True
+  rgb = img.load()
+  blockWidth = int(math.ceil(width / blockSize))
+  blockHeight = int(math.ceil(height / blockSize))
+  for x in range(blockWidth):
+    xOffset = x * blockSize
+    for y in range(blockHeight):
+      yOffset = y * blockSize
+      container = []
+      for xi in range(blockSize):
+        for yi in range(blockSize):
+          if (xi + xOffset) < width and (yi + yOffset) < height:
+            container.append(rgb[xi+xOffset,yi+yOffset])
+      color = averagePixel(container)
+      if palette: color = getClosestColor(color, palette)
+      # TODO: make averagePixel and getClosestColor update rgb by ref
+      # so that we don't have to loop again
+      for xi in range(blockSize):
+        for yi in range(blockSize):
+          if (xi + xOffset) < width and (yi + yOffset) < height:
+            rgb[xi+xOffset,yi+yOffset] = color
+      # processBlock(x + (x * blockWidth), y + (y * blockHeight), width, height, blockSize)
 
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
       description='Create "pixel art" from a photo', prog='phixel', \
       epilog="Disclaimer: this does not *really* make pixel art, it just reduces the image resolution with preset color palettes.")
-  parse.add_argument('-b', '--block', type=int, help="Block size for phixelization.")
+  parse.add_argument('-b', '--block', type=int, default=8, \
+      help="Block size for phixelization.")
   parse.add_argument('-p', '--palette', choices=['mario','flashman','zelda','kungfu','tetris','contra'], \
       help="The color palette to use.")
-  parse.add_argument('-c', '--custom', type=argparse.FileType('r', encoding="UTF-8"), \
+  parse.add_argument('-c', '--custom', type=argparse.FileType('r'), \
       help="A custom palette file to use instead of the defaults.")
-  parse.add_argument('-d', '--dimensions', \
-      help="The dimensions of the new image (format: /\d+x\d+/i)")
-  parse.add_argument('-t', '--type', choices=['png'], default='png', \
-      help="Output file type. Right now, only png is supported... But more to come :^D !!!??!!")
-  parse.add_argument('-l', '--no-lock', metavar="nolock", help="Don't preserve image ratio when resizing.")
+  # parse.add_argument('-d', '--dimensions', \
+  #     help="The dimensions of the new image (format: /\d+x\d+/i)")
+  parse.add_argument('-t', '--type', choices=['png','jpg','gif','bmp'], default='png', \
+      help="Output file type.")
+  # parse.add_argument('-l', '--no-lock', metavar="nolock", help="Don't preserve image ratio when resizing.")
   parse.add_argument('infile', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, \
       help="the input file (defaults to stdin)")
-  parse.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout, \ # todo: needs to switch to binary
+  parse.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout, \
       help="the output file (defaults to stdout)")
   args = parse.parse_args()
-  # print(args)
 
   """ Try to load the custom palette if provided:
       Should be formatted as json similar to the
@@ -479,16 +503,10 @@ if __name__=="__main__":
   elif args.palette is not None: 
     palette = PALETTES[args.palette]
 
-  try:
-    img = Image.open(args.infile)
-    phixel = phixelate(img, palette)
-  except Exception as e:
-    print e
-    args.infile.close()
-    args.outfile.close()
-    sys.exit(1)
+  img = Image.open(args.infile).convert('RGBA')
+  phixelate(img, palette, args.block)
 
+  img.save(args.outfile, args.type)
   args.infile.close()
-  # args.outfile.write(phixel)
   args.outfile.close()
   sys.exit(0)
