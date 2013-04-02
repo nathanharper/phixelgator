@@ -44,5 +44,22 @@ chmod +x phixelgator.py
 ./phixelgator.py -h
 </pre>
 
+Here's an example usage:
+
+<pre>./phixelgator.py -p nes -t jpeg -b 16 -d 1600x1600 ~/input.png output.jpeg</pre>
+
+That would take the file `~/input.png` and make a new file name `output.jpeg` that is a JPEG file made from 16x16-pixel chunks and then resized to 1600x1600 pixels using the NES color palette.
+
+You can also create custom palette files manually and load them into Phixelgator. The files should be formatted like so:
+
+<pre>
+[
+[0,0,0],
+[255,255,255]
+]
+</pre>
+
+Each integer triplet represents an RGB color value (in that order) ranging from 0 to 255. If you had that saved to a file name `custom.json`, you could use it in your image translation like so: `./phixelgator.py -c custom.json ~/input.png output.png`
+
 This tool is *heavily* inspired by this site: http://superpixeltime.com/
 One might even say that I just ported it to Python! So, many thanks to the creators.
