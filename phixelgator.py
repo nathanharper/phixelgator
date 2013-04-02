@@ -69,7 +69,7 @@ if __name__=="__main__":
   parse.add_argument('-c', '--custom', type=argparse.FileType('r'), \
       help="A custom palette file to use instead of the defaults. Should be plain JSON file with a single array of color triplets.")
   parse.add_argument('-d', '--dimensions', \
-      help="The dimensions of the new image (format: /\d+x\d+/i)")
+      help="The dimensions of the new image (format: /\d+x\d+/)")
   parse.add_argument('-t', '--type', choices=['png','jpeg','gif','bmp'], default='png', \
       help="Output file type.")
   # parse.add_argument('-l', '--no-lock', metavar="nolock", help="Don't preserve image ratio when resizing.")
