@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, argparse, math, json
+import sys, argparse, math, json
 from PIL import Image
 
 def colorDiff(c1, c2):
@@ -44,17 +44,19 @@ def phixelate(img, palette, blockSize):
       yOffset = y * blockSize
       container = []
       for xi in range(blockSize):
+        if (xi + xOffset) >= width: break
         for yi in range(blockSize):
-          if (xi + xOffset) < width and (yi + yOffset) < height:
-            container.append(rgb[xi+xOffset,yi+yOffset])
+          if (yi + yOffset) >= height: break
+          container.append(rgb[xi+xOffset,yi+yOffset])
       color = averagePixel(container)
       if palette: color = getClosestColor(color, palette)
       # TODO: make averagePixel and getClosestColor update rgb by ref
       # so that we don't have to loop again
       for xi in range(blockSize):
+        if (xi + xOffset) >= width: break
         for yi in range(blockSize):
-          if (xi + xOffset) < width and (yi + yOffset) < height:
-            rgb[xi+xOffset,yi+yOffset] = color
+          if (yi + yOffset) >= height: break
+          rgb[xi+xOffset,yi+yOffset] = color
 
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
