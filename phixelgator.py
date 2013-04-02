@@ -7,7 +7,7 @@ def colorDiff(c1, c2):
   return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
 
 def averagePixel(data):
-  "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average "
+  "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average"
   numPixels = len(data)
   r,g,b,a = 0,0,0,0
   for i in range(numPixels):
@@ -50,8 +50,6 @@ def phixelate(img, palette, blockSize):
           container.append(rgb[xi+xOffset,yi+yOffset])
       color = averagePixel(container)
       if palette: color = getClosestColor(color, palette)
-      # TODO: make averagePixel and getClosestColor update rgb by ref
-      # so that we don't have to loop again
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
         for yi in range(blockSize):
@@ -60,7 +58,7 @@ def phixelate(img, palette, blockSize):
 
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
-      description='Create "pixel art" from a photo', prog='phixel', \
+      description='Create "pixel art" from a photo', prog='phixelgator', \
       epilog="Disclaimer: this does not *really* make pixel art, it just reduces the image resolution with preset color palettes.")
   parse.add_argument('-b', '--block', type=int, default=8, \
       help="Block size for phixelization. Default is 8 pixels.")
