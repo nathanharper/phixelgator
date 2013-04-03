@@ -56,6 +56,40 @@ def phixelate(img, palette, blockSize):
           if (yi + yOffset) >= height: break
           rgb[xi+xOffset,yi+yOffset] = color
 
+def tripEq(a,b):
+  return a[0] == b[0] and a[1] == b[1] and a[2] == b[2]
+
+def removeDupColors(colors):
+  "Takes an array of rgb color triplets and removes duplicates"
+  i,j = 0,1
+  length = len(colors)
+  result = []
+  while i < length:
+    while j < length:
+      if tripEq(colors[i],colors[j]):
+        break
+      j+=1
+    if j >= length: result.append(colors[i])
+    i+=1
+    j=i+1
+  return result
+
+def generatePalette(infile, outfile):
+  "Generate a palette .json file from an image."
+  img = Image.open(infile).convert('RGB')
+  rgb = img.load()
+  width,height = img.size
+  colors = []
+  for x in range(width):
+    for y in range(height):
+      r,g,b = rgb[x,y]
+      colors.append([r,g,b])
+  palette = removeDupColors(colors)
+  outfile.write(json.dumps(palette))
+  infile.close()
+  outfile.close()
+  sys.exit(0)
+
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
       description='Create "pixel art" from a photo', prog='phixelgator', \
@@ -72,12 +106,19 @@ if __name__=="__main__":
       help="The dimensions of the new image (format: /\d+x\d+/)")
   parse.add_argument('-t', '--type', choices=['png','jpeg','gif','bmp'], default='png', \
       help="Output file type.")
+  parse.add_argument('-g', '--generate', action='store_true', \
+      help="This flag overrides the default behaviour of infile and outfile options -- instead \
+      of converting the input to a new image, a custom palette file will be generated from all colors \
+      used in the infile photo. Other options are ignored.")
   # parse.add_argument('-l', '--no-lock', metavar="nolock", help="Don't preserve image ratio when resizing.")
   parse.add_argument('infile', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, \
       help="the input file (defaults to stdin)")
   parse.add_argument('outfile', nargs='?', type=argparse.FileType('wb'), default=sys.stdout, \
       help="the output file (defaults to stdout)")
   args = parse.parse_args()
+
+  if args.generate is True:
+    generatePalette(args.infile, args.outfile)
 
   """ Try to load the custom palette if provided:
       Should be formatted as json similar to the
