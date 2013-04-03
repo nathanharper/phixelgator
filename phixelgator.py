@@ -22,15 +22,8 @@ def averagePixel(data):
 
 def getClosestColor(color, palette):
   "Find the closest color in the current palette. TODO: optimize!"
-  minDelta = 255*3
-  closestColor = (0,0,0)
-  for c in palette:
-    delta = colorDiff(color, c)
-    if delta < minDelta:
-      minDelta = delta
-      closestColor = c
-  # preserve the alpha value from the original color, and convert list to tuple
-  return (closestColor[0], closestColor[1], closestColor[2], color[3])
+  r,g,b = min(palette, key=lambda c: colorDiff(color, c))
+  return (r,g,b,color[3])
 
 def phixelate(img, palette, blockSize):
   "initiate conversion"
@@ -48,8 +41,10 @@ def phixelate(img, palette, blockSize):
         for yi in range(blockSize):
           if (yi + yOffset) >= height: break
           container.append(rgb[xi+xOffset,yi+yOffset])
+
       color = averagePixel(container)
       if palette: color = getClosestColor(color, palette)
+
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
         for yi in range(blockSize):
