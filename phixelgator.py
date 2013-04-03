@@ -66,8 +66,7 @@ def removeDupColors(colors):
   result = []
   while i < length:
     while j < length:
-      if tripEq(colors[i],colors[j]):
-        break
+      if tripEq(colors[i],colors[j]): break
       j+=1
     if j >= length: result.append(colors[i])
     i+=1
