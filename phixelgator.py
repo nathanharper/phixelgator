@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-import sys, argparse, math, json
+import sys, argparse, math, json, os
 from PIL import Image
 
 def colorDiff(c1, c2):
-  "Calculates difference betwixt two colors"
+  "Calculates difference betwixt two colors: the magnitude of the vector difference."
   return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
 
 def averagePixel(data):
@@ -26,7 +26,7 @@ def getClosestColor(color, palette):
   return (r,g,b,color[3])
 
 def phixelate(img, palette, blockSize):
-  "initiate conversion"
+  "Takes a PIL image object, a palette, and a block-size and alters colors in-place. no return val."
   width, height = img.size
   rgb = img.load()
   blockWidth = int(math.ceil(width / blockSize))
@@ -51,11 +51,8 @@ def phixelate(img, palette, blockSize):
           if (yi + yOffset) >= height: break
           rgb[xi+xOffset,yi+yOffset] = color
 
-def tripEq(a,b):
-  return a[0] == b[0] and a[1] == b[1] and a[2] == b[2]
-
 def generatePalette(img):
-  "Generate a palette .json file from an image."
+  "Generate a palette json file from an image. Image should NOT have an alpha value!"
   rgb = img.load()
   width,height = img.size
   return json.dumps(map(lambda (_,(r,g,b)): [r,g,b], img.getcolors(width*height)))
@@ -78,20 +75,23 @@ if __name__=="__main__":
   parse.add_argument('-c', '--custom', type=argparse.FileType('r'), \
       help="A custom palette file to use instead of the defaults. Should be plain JSON file with a single array of color triplets.")
   parse.add_argument('-d', '--dimensions', \
-      help="The dimensions of the new image (format: /\d+x\d+/)")
+      help="The dimensions of the new image (format: 10x10)")
   parse.add_argument('-t', '--type', choices=['png','jpeg','gif','bmp'], default='png', \
       help="Output file type.")
   parse.add_argument('-g', '--generate', action='store_true', \
       help="This flag overrides the default behaviour of infile and outfile options -- instead \
       of converting the input to a new image, a custom palette file will be generated from all colors \
       used in the infile photo. Other options are ignored.")
-  # parse.add_argument('-l', '--no-lock', metavar="nolock", help="Don't preserve image ratio when resizing.")
   parse.add_argument('infile', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, \
       help="the input file (defaults to stdin)")
   parse.add_argument('outfile', nargs='?', type=argparse.FileType('wb'), default=sys.stdout, \
       help="the output file (defaults to stdout)")
   args = parse.parse_args()
 
+  """ If the -g flag is set, the behaviour of the utility is
+      completely altered -- instead of generating a new image,
+      a new color-palette json file is generated from the colors
+      of the input file. """
   if args.generate is True:
     img = Image.open(args.infile).convert('RGB')
     palette = generatePalette(img)
@@ -107,22 +107,24 @@ if __name__=="__main__":
     args.custom.close()
   elif args.palette is not None: 
     try:
-      with open('palettes/' + args.palette + '.json', 'r') as f:
+      path = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'palettes' + os.sep
+      with open(path + args.palette + '.json', 'r') as f:
         palette = json.loads(f.read())
     except Exception, e:
-      sys.stderr.write("No palette loaded: " + e)
+      sys.stderr.write("No palette loaded")
       palette = False
 
   img = Image.open(args.infile).convert('RGBA')
   phixelate(img, palette, args.block)
 
+  """ Try to resize the image and fail gracefully """
   if args.dimensions:
     try:
       imgWidth, imgHeight = map(int, args.dimensions.split('x', 1))
       resized_img = img.resize((imgWidth, imgHeight))
       resized_img.save(args.outfile, args.type)
     except Exception, e:
-      sys.stderr.write("Failed to resize image: " + e)
+      sys.stderr.write("Failed to resize image")
       img.save(args.outfile, args.type)
   else:
     img.save(args.outfile, args.type)
