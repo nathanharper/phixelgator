@@ -59,35 +59,16 @@ def phixelate(img, palette, blockSize):
 def tripEq(a,b):
   return a[0] == b[0] and a[1] == b[1] and a[2] == b[2]
 
-def removeDupColors(colors):
-  "Takes an array of rgb color triplets and removes duplicates"
-  i,j = 0,1
-  length = len(colors)
-  result = []
-  while i < length:
-    while j < length:
-      if tripEq(colors[i],colors[j]): break
-      j+=1
-    if j >= length: result.append(colors[i])
-    i+=1
-    j=i+1
-  return result
-
-def generatePalette(infile, outfile):
+def generatePalette(img):
   "Generate a palette .json file from an image."
-  img = Image.open(infile).convert('RGB')
   rgb = img.load()
   width,height = img.size
-  colors = []
-  for x in range(width):
-    for y in range(height):
-      r,g,b = rgb[x,y]
-      colors.append([r,g,b])
-  palette = removeDupColors(colors)
-  outfile.write(json.dumps(palette))
-  infile.close()
-  outfile.close()
-  sys.exit(0)
+  return json.dumps(map(lambda (_,(r,g,b)): [r,g,b], img.getcolors(width*height)))
+
+def exitScript(args, code):
+  args.infile.close()
+  args.outfile.close()
+  sys.exit(code)
 
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
@@ -117,7 +98,10 @@ if __name__=="__main__":
   args = parse.parse_args()
 
   if args.generate is True:
-    generatePalette(args.infile, args.outfile)
+    img = Image.open(args.infile).convert('RGB')
+    palette = generatePalette(img)
+    args.outfile.write(palette)
+    exitScript(args, 0)
 
   """ Try to load the custom palette if provided:
       Should be formatted as json similar to the
@@ -148,6 +132,4 @@ if __name__=="__main__":
   else:
     img.save(args.outfile, args.type)
 
-  args.infile.close()
-  args.outfile.close()
-  sys.exit(0)
+  exitScript(args, 0)
