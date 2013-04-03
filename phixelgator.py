@@ -3,22 +3,12 @@ import sys, argparse, math, json, os
 from PIL import Image
 
 def colorDiff(c1, c2):
-  "Calculates difference betwixt two colors: the magnitude of the vector difference."
+  "Calculates difference betwixt two colors: Euclidean Distance"
   return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
 
 def averagePixel(data):
-  "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average"
-  numPixels = len(data)
-  r,g,b,a = 0,0,0,0
-  for i in range(numPixels):
-    r += data[i][0]
-    g += data[i][1]
-    b += data[i][2]
-    a += data[i][3]
-  return (int(round(r/numPixels)),
-      int(round(g/numPixels)),
-      int(round(b/numPixels)),
-      int(round(a/numPixels)))
+  "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average. one-liners are fucken sweet!"
+  return tuple(map(lambda x: int(round(sum(x) / len(data))), zip(*data)))
 
 def getClosestColor(color, palette):
   "Find the closest color in the current palette. TODO: optimize!"
