@@ -2,6 +2,10 @@
 import sys, argparse, math, json, os
 from PIL import Image
 
+def getHex(color):
+  "Get color hex value from rgb (or rgba)"
+  return ''.join(map(lambda t: hex(t).split('x',1)[1], color)[:3])
+
 def colorDiff(c1, c2):
   "Calculates difference betwixt two colors: Euclidean Distance"
   return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
@@ -10,10 +14,15 @@ def averagePixel(data):
   "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average. one-liners are fucken sweet!"
   return tuple(map(lambda x: int(round(sum(x) / len(data))), zip(*data)))
 
-def getClosestColor(color, palette):
+def getClosestColor(color, palette, hexdict):
   "Find the closest color in the current palette. TODO: optimize!"
-  r,g,b = min(palette, key=lambda c: colorDiff(color, c))
-  return (r,g,b,color[3])
+  hexval = getHex(color)
+  if hexval not in hexdict:
+    r,g,b = min(palette, key=lambda c: colorDiff(color, c))
+    hexdict[hexval] = [r,g,b]
+  else:
+    r,g,b = hexdict[hexval]
+  return (r,g,b,color[3]) # maintain original alpha channel
 
 def phixelate(img, palette, blockSize):
   "Takes a PIL image object, a palette, and a block-size and alters colors in-place. no return val."
@@ -21,6 +30,7 @@ def phixelate(img, palette, blockSize):
   rgb = img.load()
   blockWidth = int(math.ceil(width / blockSize))
   blockHeight = int(math.ceil(height / blockSize))
+  hexdict = {} # store "closest" colors to avoid repeat computations.
   for x in range(blockWidth):
     xOffset = x * blockSize
     for y in range(blockHeight):
@@ -33,7 +43,7 @@ def phixelate(img, palette, blockSize):
           container.append(rgb[xi+xOffset,yi+yOffset])
 
       color = averagePixel(container)
-      if palette: color = getClosestColor(color, palette)
+      if palette: color = getClosestColor(color, palette, hexdict)
 
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
