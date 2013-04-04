@@ -7,8 +7,8 @@ def getHex(color):
   return ''.join(map(lambda t: hex(t).split('x',1)[1], color[:3]))
 
 def colorDiff(c1, c2):
-  "Calculates difference betwixt two colors: Euclidean Distance"
-  return math.sqrt(((c1[0] - c2[0])**2) + ((c1[1] - c2[1])**2) + ((c1[2] - c2[2])**2))
+  "Calculates difference betwixt two colors."
+  return sum(map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3])))
 
 def averagePixel(data):
   "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average. one-liners are fucken sweet!"
