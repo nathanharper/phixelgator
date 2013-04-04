@@ -78,6 +78,9 @@ if __name__=="__main__":
       help="The dimensions of the new image (format: 10x10)")
   parse.add_argument('-t', '--type', choices=['png','jpeg','gif','bmp'], default='png', \
       help="Output file type.")
+  parse.add_argument('-x', '--crop', choices=['tl','tr','bl','br'], \
+      help="If this flag is set, the image will be cropped to conform to the Block Size. \
+      The argument passed describes what corner to crop from.")
   parse.add_argument('-g', '--generate', action='store_true', \
       help="This flag overrides the default behaviour of infile and outfile options -- instead \
       of converting the input to a new image, a custom palette file will be generated from all colors \
@@ -115,12 +118,23 @@ if __name__=="__main__":
       palette = False
 
   img = Image.open(args.infile).convert('RGBA')
+
+  """ Crop the image so that it fits the block size evenly """
+  if args.crop:
+    width,height = img.size
+    newWidth = math.floor(width / args.block) * args.block
+    newHeight = math.floor(height / args.block) * args.block
+    if 'tl' == args.crop: img = img.crop((0,0,newWidth,newHeight))
+    elif 'tr' == args.crop: img = img.crop((width-newWidth,0,width,newHeight))
+    elif 'bl' == args.crop: img = img.crop((0,height-newHeight,newWidth,height))
+    elif 'br' == args.crop: img = img.crop((width-newWidth,height-newHeight,width,height))
+
   phixelate(img, palette, args.block)
 
   """ Try to resize the image and fail gracefully """
   if args.dimensions:
     try:
-      imgWidth, imgHeight = map(int, args.dimensions.split('x', 1))
+      imgWidth, imgHeight = map(int, args.dimensions.split('x',1))
       resized_img = img.resize((imgWidth, imgHeight))
       resized_img.save(args.outfile, args.type)
     except Exception, e:
