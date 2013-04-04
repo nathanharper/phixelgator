@@ -124,10 +124,12 @@ if __name__=="__main__":
     width,height = img.size
     newWidth = math.floor(width / args.block) * args.block
     newHeight = math.floor(height / args.block) * args.block
-    if 'tl' == args.crop: img = img.crop((0,0,newWidth,newHeight))
-    elif 'tr' == args.crop: img = img.crop((width-newWidth,0,width,newHeight))
-    elif 'bl' == args.crop: img = img.crop((0,height-newHeight,newWidth,height))
-    elif 'br' == args.crop: img = img.crop((width-newWidth,height-newHeight,width,height))
+    if 'tl' == args.crop: cropsize = [0,0,newWidth,newHeight]
+    elif 'tr' == args.crop: cropsize = [width-newWidth,0,width,newHeight]
+    elif 'bl' == args.crop: cropsize = [0,height-newHeight,newWidth,height]
+    elif 'br' == args.crop: cropsize = [width-newWidth,height-newHeight,width,height]
+    cropsize = tuple(map(int, cropsize))
+    img = img.crop(cropsize)
 
   phixelate(img, palette, args.block)
 
