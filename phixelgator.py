@@ -128,8 +128,7 @@ if __name__=="__main__":
     elif 'tr' == args.crop: cropsize = [width-newWidth,0,width,newHeight]
     elif 'bl' == args.crop: cropsize = [0,height-newHeight,newWidth,height]
     elif 'br' == args.crop: cropsize = [width-newWidth,height-newHeight,width,height]
-    cropsize = tuple(map(int, cropsize))
-    img = img.crop(cropsize)
+    img = img.crop(tuple(map(int, cropsize)))
 
   phixelate(img, palette, args.block)
 
