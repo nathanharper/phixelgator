@@ -4,7 +4,7 @@ from PIL import Image
 
 def getHex(color):
   "Get color hex value from rgb (or rgba)"
-  return ''.join(map(lambda t: hex(t).split('x',1)[1], color)[:3])
+  return ''.join(map(lambda t: hex(t).split('x',1)[1], color[:3]))
 
 def colorDiff(c1, c2):
   "Calculates difference betwixt two colors: Euclidean Distance"
