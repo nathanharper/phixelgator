@@ -53,9 +53,7 @@ def phixelate(img, palette, blockSize):
 
 def generatePalette(img):
   "Generate a palette json file from an image. Image should NOT have an alpha value!"
-  rgb = img.load()
-  width,height = img.size
-  return json.dumps(map(lambda (_,(r,g,b)): [r,g,b], img.getcolors(width*height)))
+  return json.dumps(map(lambda (_,(r,g,b)): [r,g,b], img.getcolors(img.size[0]*img.size[1])))
 
 def exitScript(args, code):
   args.infile.close()
