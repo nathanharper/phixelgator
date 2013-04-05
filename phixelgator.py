@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys, argparse, math, json, os
 from PIL import Image
+from kdtree import KDTree
 
 def getHex(color):
   "Get color hex value from rgb (or rgba)"
@@ -27,6 +28,7 @@ def getClosestColor(color, palette, hexdict):
 def phixelate(img, palette, blockSize):
   "Takes a PIL image object, a palette, and a block-size and alters colors in-place. no return val."
   width, height = img.size
+  if palette: tree = KDTree.construct_from_data(palette)
   rgb = img.load()
   blockWidth = int(math.ceil(width / blockSize))
   blockHeight = int(math.ceil(height / blockSize))
@@ -43,7 +45,16 @@ def phixelate(img, palette, blockSize):
           container.append(rgb[xi+xOffset,yi+yOffset])
 
       color = averagePixel(container)
-      if palette: color = getClosestColor(color, palette, hexdict)
+      if tree is not None: 
+        hexval = getHex(color)
+        if hexval in hexdict:
+          r,g,b = hexdict[hexval]
+        else:
+          q_result = tree.query(color[:3])
+          if len(q_result) > 0:
+            r,g,b = q_result[0]
+          else: r,g,b,a = color
+        color = (r,g,b,color[3])
 
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
