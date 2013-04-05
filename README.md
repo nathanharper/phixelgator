@@ -1,80 +1,31 @@
 <h1>Phixelgator</h1>
 Sorry for the dumb title! I couldn't think of anything. This is a command line utility that converts a photo to "pixel art", i.e. a lower resolution version of the same image with a custom color palette.
 
-Dependencies are python and the python imaging library "PIL". If you are running a python version less than 2.7, you may need to install argparse as well. This should be enough:
+The idea is that you can specify one of the built-in palettes to use with the `-p` flag, or you can load a custom palette with the `-c` flag. The palette files should be in a valid JSON subset consisting of ONE top-level array containing an arbitrary number of arrays that all have EXACTLY three elements, all integers from 0-255. These are representative of RGB values. You can set the number pixel width/height of the monochrome blocks to be generated with the `-b` option. Default is to create 8x8 blocks.
+
+Aside from some basic, tangential image manipulation features like auto-cropping and resizing, the main extra feature is the ability to generate custom color palette files with an input image. Run phixelgator with the `-g` flag to convert the input image into a color palette file that can then be used with the `-c` flag. It's not recommended that you use palette files created with very complex images, as extremely large color palettes are the biggest bottleneck in performance. If you just want all the original colors of the image available with a more pixelized look, you can just run it without the `-p` or `-c` flag.
+
+<h2>Installation</h2>
+I've tested this successfully on Ubuntu Linux, OSX, and Windows. Dependencies are python &gt;= 2.7 and the python imaging library "PIL". It should work with older versions of python as well, but you'll have to install the argparse library separately. This should be enough on mac and linux:
 
 <pre>
 sudo easy_install PIL 
 sudo easy_install argparse
 </pre>
 
-I'm lazy, so here's a dump of the help printout from when you run `./phixelgator -h` at the CLI.
+On Windows, you can just get the installers from the site or whatever the hell people do on Windows.
+
+Once that stuff is done, checkout the repo, and make sure it's executable:
 
 <pre>
-usage: phixelgator [-h] [-b BLOCK]
-                   [-p {mario,flashman,hyrule,kungfu,tetris,contra,appleii,atari2600,commodore64,gameboy,grayscale,intellivision,nes,sega}]
-                   [-c CUSTOM] [-d DIMENSIONS] [-t {png,jpeg,gif,bmp}] [-g]
-                   [infile] [outfile]
-
-Create "pixel art" from a photo
-
-positional arguments:
-  infile                the input file (defaults to stdin)
-  outfile               the output file (defaults to stdout)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -b BLOCK, --block BLOCK
-                        Block size for phixelization. Default is 8 pixels.
-  -p {mario,flashman,hyrule,kungfu,tetris,contra,appleii,atari2600,commodore64,gameboy,grayscale,intellivision,nes,sega}, --palette {mario,flashman,hyrule,kungfu,tetris,contra,appleii,atari2600,commodore64,gameboy,grayscale,intellivision,nes,sega}
-                        The color palette to use.
-  -c CUSTOM, --custom CUSTOM
-                        A custom palette file to use instead of the defaults.
-                        Should be plain JSON file with a single array of color
-                        triplets.
-  -d DIMENSIONS, --dimensions DIMENSIONS
-                        The dimensions of the new image (format: 10x10)
-  -t {png,jpeg,gif,bmp}, --type {png,jpeg,gif,bmp}
-                        Output file type.
-  -g, --generate        This flag overrides the default behaviour of infile
-                        and outfile options -- instead of converting the input
-                        to a new image, a custom palette file will be
-                        generated from all colors used in the infile photo.
-                        Other options are ignored.
-
-Disclaimer: this does not *really* make pixel art, it just reduces the image
-resolution with preset color palettes.
-</pre>
-
-As I said above, you can see all this from using the help flag when invoking the script. Just do:
-
-<pre>
+git clone https://github.com/nathanharper/phixelgator.git
+cd phixelgator
 chmod +x phixelgator.py
 ./phixelgator.py -h
 </pre>
 
-Here's an example usage:
+That's it! The last line in there should print the help info, which should be very up-to-date. You can also check out the bash scripts in the "tests" directory if you want to see some examples.
 
-<pre>./phixelgator.py -p nes -t jpeg -b 16 -d 1600x1600 ~/input.png output.jpeg</pre>
-
-That would take the file `~/input.png` and make a new file name `output.jpeg` that is a JPEG file made from 16x16-pixel chunks and then resized to 1600x1600 pixels using the NES color palette.
-
-You can also create custom palette files manually and load them into Phixelgator. Here's an example of a boring palette file that is either black or white:
-
-<pre>
-[
-[0,0,0],
-[255,255,255]
-]
-</pre>
-
-Each integer triplet represents an RGB color value (in that order) ranging from 0 to 255. If you had that saved to a file name `custom.json`, you could use it in your image translation like so: `./phixelgator.py -c custom.json ~/input.png output.png`
-
-To generate a palette file like this from an image, set the -g flag and phixelgator will create a palette file instead of a pixelized image:
-
-<pre>./phixelgator.py -g input.png palette.json</pre>
-
-To run the tests, go into the `tests` directory and execute the two .sh files. They should create a custom palette from the test image, and use the test image to create pixelized images for all the default palettes.
-
+<h2>Acknowledgement</h2>
 This tool is *heavily* inspired by this site: http://superpixeltime.com/
 One might even say that I just ported it to Python! So, many thanks to the creators.
