@@ -69,7 +69,7 @@ if __name__=="__main__":
   parse.add_argument('-b', '--block', type=int, default=8, \
       help="Block size for phixelization. Default is 8 pixels.")
   parse.add_argument('-p', '--palette', \
-      choices=['mario','flashman','hyrule','kungfu','tetris','contra','appleii', \
+      choices=['mario','hyrule','kungfu','tetris','contra','appleii', \
       'atari2600','commodore64','gameboy','grayscale','intellivision','nes','sega'], \
       help="The color palette to use.")
   parse.add_argument('-c', '--custom', type=argparse.FileType('r'), \
