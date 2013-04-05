@@ -122,13 +122,13 @@ if __name__=="__main__":
   """ Crop the image so that it fits the block size evenly """
   if args.crop:
     width,height = img.size
-    newWidth = math.floor(width / args.block) * args.block
-    newHeight = math.floor(height / args.block) * args.block
-    if 'tl' == args.crop: cropsize = [0,0,newWidth,newHeight]
-    elif 'tr' == args.crop: cropsize = [width-newWidth,0,width,newHeight]
-    elif 'bl' == args.crop: cropsize = [0,height-newHeight,newWidth,height]
-    elif 'br' == args.crop: cropsize = [width-newWidth,height-newHeight,width,height]
-    img = img.crop(tuple(map(int, cropsize)))
+    newWidth = int(math.floor(width / args.block) * args.block)
+    newHeight = int(math.floor(height / args.block) * args.block)
+    if 'tl' == args.crop: cropsize = (0,0,newWidth,newHeight)
+    elif 'tr' == args.crop: cropsize = (width-newWidth,0,width,newHeight)
+    elif 'bl' == args.crop: cropsize = (0,height-newHeight,newWidth,height)
+    elif 'br' == args.crop: cropsize = (width-newWidth,height-newHeight,width,height)
+    img = img.crop(cropsize)
 
   phixelate(img, palette, args.block)
 
