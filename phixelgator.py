@@ -17,6 +17,11 @@ def colorDiff(c1, c2):
   "Calculates difference betwixt two colors."
   return sum(map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3])))
 
+def colorDiffWheighted(c1, c2, mode='hsv'):
+  "HSV and HLS should have different weights... TODO: decide what they are :P"
+  diff_pix = map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3]))
+  return diff_pix[0] + diff_pix[1] + diff_pix[2]
+
 def averagePixel(data, mode='rgb'):
   "Takes a list of pixel data tuples and finds average."
   if 'rgb' == mode:
@@ -26,9 +31,11 @@ def averagePixel(data, mode='rgb'):
 
 def getClosestColor(color, palette, hexdict, mode='rgb'):
   "Find the closest color in the current palette. TODO: optimize!"
-  hexval = getHex(color, mode) # TODO: is this still going to work for HSV and HLS?
+  hexval = getHex(color, mode)
   if hexval not in hexdict:
-    hexdict[hexval] = min(palette, key=lambda c: colorDiff(color, c))
+    if mode != 'rgb': diff_func = colorDiffWheighted
+    else: diff_func = colorDiff
+    hexdict[hexval] = min(palette, key=lambda c: diff_func(color, c))
   return list(hexdict[hexval]) # "list" looks redundant, but we want a *copy* of the color
 
 """ TODO: There's probably a more efficient way to convert rgb => hsv and hls,
@@ -75,7 +82,7 @@ def phixelate(img, palette, blockSize, mode='rgb'):
 
       # stick alpha channel back on and convert to tuple
       color.append(avg_alpha)
-      color = tuple(map(int,color))
+      color = tuple(map(lambda co: int(round(co)), color))
 
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
