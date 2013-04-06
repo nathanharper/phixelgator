@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import sys, argparse, math, json, os
+from __future__ import division # this lets us get decimal results from the '/' operator.
+import sys, argparse, math, json, os, colorsys
 from PIL import Image
 
 def getHex(color):
@@ -10,40 +11,65 @@ def colorDiff(c1, c2):
   "Calculates difference betwixt two colors."
   return sum(map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3])))
 
-def averagePixel(data):
-  "Takes a list of pixel data tuples -- (r,g,b,a) -- and finds average. one-liners are fucken sweet!"
-  return tuple(map(lambda x: int(round(sum(x) / len(data))), zip(*data)))
+def averagePixel(data, mode='rgb'):
+  "Takes a list of pixel data tuples and finds average."
+  if 'rgb' == mode:
+    return map(lambda x: int(round(sum(x) / len(data))), zip(*data)[:3])
+  else:
+    return map(lambda x: sum(x) / len(data), zip(*data)[:3])
 
 def getClosestColor(color, palette, hexdict):
   "Find the closest color in the current palette. TODO: optimize!"
-  hexval = getHex(color)
+  hexval = getHex(color) # TODO: is this still going to work for HSV and HLS?
   if hexval not in hexdict:
-    r,g,b = min(palette, key=lambda c: colorDiff(color, c))
-    hexdict[hexval] = [r,g,b]
-  else:
-    r,g,b = hexdict[hexval]
-  return (r,g,b,color[3]) # maintain original alpha channel
+    hexdict[hexval] = min(palette, key=lambda c: colorDiff(color, c))
+  return list(hexdict[hexval]) # "list" looks redundant, but we want a *copy* of the color
 
-def phixelate(img, palette, blockSize):
+""" TODO: There's probably a more efficient way to convert rgb => hsv and hls,
+    perhaps with numpy """
+def phixelate(img, palette, blockSize, mode='rgb'):
   "Takes a PIL image object, a palette, and a block-size and alters colors in-place. no return val."
   width, height = img.size
   rgb = img.load()
   blockWidth = int(math.ceil(width / blockSize))
   blockHeight = int(math.ceil(height / blockSize))
   hexdict = {} # store "closest" colors to avoid repeat computations.
+
   for x in range(blockWidth):
     xOffset = x * blockSize
     for y in range(blockHeight):
       yOffset = y * blockSize
-      container = []
+
+      container = [] # represents one monochrome "block" of the image
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
         for yi in range(blockSize):
           if (yi + yOffset) >= height: break
           container.append(rgb[xi+xOffset,yi+yOffset])
 
-      color = averagePixel(container)
+      # alpha isn't used in finding the color so just pop it off for later
+      avg_alpha = int(round(sum(zip(*container)[3]) / len(container)))
+
+      """ TODO: store converted RGB values to prevent duplicate
+          calls to colorsys """
+      if 'hsv' == mode:
+        container = map(lambda co: colorsys.rgb_to_hsv(*(co[:3])), container)
+      if 'hls' == mode:
+        container = map(lambda co: colorsys.rgb_to_hls(*(co[:3])), container)
+
+      # Convert a block to one color -- take the average, and find closest palette color
+      color = averagePixel(container, mode)
       if palette: color = getClosestColor(color, palette, hexdict)
+
+      # Convert back to rgb if we're in hsv or hls mode
+      if 'hsv' == mode:
+        color = list(colorsys.hsv_to_rgb(*color))
+      if 'hls' == mode:
+        color = list(colorsys.hls_to_rgb(*color))
+
+      # stick alpha channel back on and convert to tuple
+      color.append(avg_alpha)
+      color = tuple(map(int,color))
 
       for xi in range(blockSize):
         if (xi + xOffset) >= width: break
@@ -51,9 +77,15 @@ def phixelate(img, palette, blockSize):
           if (yi + yOffset) >= height: break
           rgb[xi+xOffset,yi+yOffset] = color
 
-def generatePalette(img):
+def generatePalette(img, mode='rgb'):
   "Generate a palette json file from an image. Image should NOT have an alpha value!"
-  return json.dumps(map(lambda (_,(r,g,b)): [r,g,b], img.getcolors(img.size[0]*img.size[1])))
+  if 'hsv' == mode:
+    transform = lambda (_,rgb): list(colorsys.rgb_to_hsv(*rgb))
+  elif 'hls' == mode:
+    transform = lambda (_,rgb): list(colorsys.rgb_to_hls(*rgb))
+  else:
+    transform = lambda (_,rgb): list(rgb)
+  return json.dumps(map(transform, img.getcolors(img.size[0]*img.size[1])))
 
 def exitScript(args, code):
   args.infile.close()
@@ -79,6 +111,9 @@ if __name__=="__main__":
   parse.add_argument('-x', '--crop', choices=['tl','tr','bl','br'], \
       help="If this flag is set, the image will be cropped to conform to the Block Size. \
       The argument passed describes what corner to crop from.")
+  parse.add_argument('-m', '--mode', choices=['rgb','hsv','hls'], default='rgb', \
+      help="The color mode to use. hsv or hls may produce more desirable results than the default rgb \
+      but the process will take longer.")
   parse.add_argument('-g', '--generate', action='store_true', \
       help="This flag overrides the default behaviour of infile and outfile options -- instead \
       of converting the input to a new image, a custom palette file will be generated from all colors \
@@ -106,10 +141,16 @@ if __name__=="__main__":
   if args.custom is not None:
     palette = json.loads(args.custom.read())
     args.custom.close()
+    # To simplify things, the custom palette generator only makes rgb files,
+    # so it's fairly safe to assume that's what we're getting.
+    if 'hsv' == args.mode:
+      palette = map(lambda rgb: colorsys.rgb_to_hsv(*rgb), palette)
+    elif 'hls' == args.mode:
+      palette = map(lambda rgb: colorsys.rgb_to_hls(*rgb), palette)
   elif args.palette is not None: 
     try:
-      path = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'palettes' + os.sep
-      with open(path + args.palette + '.json', 'r') as f:
+      path = os.sep.join([os.path.dirname(os.path.realpath(__file__)),'palettes',args.mode,args.palette])
+      with open(path + '.json', 'r') as f:
         palette = json.loads(f.read())
     except Exception, e:
       sys.stderr.write("No palette loaded")
@@ -128,7 +169,7 @@ if __name__=="__main__":
     elif 'br' == args.crop: cropsize = (width-newWidth,height-newHeight,width,height)
     img = img.crop(cropsize)
 
-  phixelate(img, palette, args.block)
+  phixelate(img, palette, args.block, args.mode)
 
   """ Try to resize the image and fail gracefully """
   if args.dimensions:
