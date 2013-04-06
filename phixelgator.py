@@ -3,9 +3,15 @@ from __future__ import division # this lets us get decimal results from the '/' 
 import sys, argparse, math, json, os, colorsys
 from PIL import Image
 
-def getHex(color):
+def getHex(color, mode='rgb'):
   "Get color hex value from rgb (or rgba)"
-  return ''.join(map(lambda t: hex(t).split('x',1)[1], color[:3]))
+  if 'hsv' == mode:
+    rgb = colorsys.hsv_to_rgb(*(color[:3]))
+  elif 'hls' == mode:
+    rgb = colorsys.hls_to_rgb(*(color[:3]))
+  else:
+    rgb = color[:3]
+  return ''.join(map(lambda t: hex(int(t)).split('x',1)[1], rgb))
 
 def colorDiff(c1, c2):
   "Calculates difference betwixt two colors."
@@ -18,9 +24,9 @@ def averagePixel(data, mode='rgb'):
   else:
     return map(lambda x: sum(x) / len(data), zip(*data)[:3])
 
-def getClosestColor(color, palette, hexdict):
+def getClosestColor(color, palette, hexdict, mode='rgb'):
   "Find the closest color in the current palette. TODO: optimize!"
-  hexval = getHex(color) # TODO: is this still going to work for HSV and HLS?
+  hexval = getHex(color, mode) # TODO: is this still going to work for HSV and HLS?
   if hexval not in hexdict:
     hexdict[hexval] = min(palette, key=lambda c: colorDiff(color, c))
   return list(hexdict[hexval]) # "list" looks redundant, but we want a *copy* of the color
@@ -59,7 +65,7 @@ def phixelate(img, palette, blockSize, mode='rgb'):
 
       # Convert a block to one color -- take the average, and find closest palette color
       color = averagePixel(container, mode)
-      if palette: color = getClosestColor(color, palette, hexdict)
+      if palette: color = getClosestColor(color, palette, hexdict, mode)
 
       # Convert back to rgb if we're in hsv or hls mode
       if 'hsv' == mode:
