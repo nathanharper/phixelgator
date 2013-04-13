@@ -132,7 +132,7 @@ if __name__=="__main__":
   parse.add_argument('-d', '--dimensions', \
       help="The dimensions of the new image (format: 10x10)")
   parse.add_argument('-t', '--type', choices=['png','jpeg','gif','bmp'], default='png', \
-      help="Output file type.")
+      help="Output file type. Default is 'png'.")
   parse.add_argument('-x', '--crop', choices=['tl','tr','bl','br'], \
       help="If this flag is set, the image will be cropped to conform to the Block Size. \
       The argument passed describes what corner to crop from.")
