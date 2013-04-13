@@ -5,9 +5,9 @@ from PIL import Image
 
 """ These convert from decimal back to 0-255 mode """
 def hls_to_rgb(h,l,s):
-  return colorsys.hls_to_rgb(int(h*255.0),int(l*255.0),int(s*255.0))
+  return map(lambda hls: map(lambda c: int(c*255), hls), colorsys.hls_to_rgb(h,l,s))
 def hsv_to_rgb(h,s,v):
-  return colorsys.hls_to_rgb(int(h*255.0),int(s*255.0),int(v*255.0))
+  return map(lambda hsv: map(lambda c: int(c*255), hsv), colorsys.hsv_to_rgb(h,s,v))
 def rgb_to_hsv(r,g,b):
   return colorsys.rgb_to_hsv(r/255,g/255,b/255)
 def rgb_to_hls(r,g,b):
@@ -32,7 +32,7 @@ def colorDiff(c1, c2):
 def colorDiffWheighted(c1, c2, mode='hsv'):
   "HSV and HLS should have different weights... TODO: decide what they are :P"
   diff_pix = map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3]))
-  return diff_pix[0] + diff_pix[1] + diff_pix[2]
+  return (diff_pix[0]*10) + (diff_pix[1]*10) + (diff_pix[2]*10)**2
 
 def averagePixel(data, mode='rgb'):
   "Takes a list of pixel data tuples and finds average."
