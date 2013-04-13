@@ -3,14 +3,24 @@ from __future__ import division
 import sys, argparse, math, json, os, colorsys
 from PIL import Image
 
+""" These convert from decimal back to 0-255 mode """
+def hls_to_rgb(h,l,s):
+  return colorsys.hls_to_rgb(int(h*255.0),int(l*255.0),int(s*255.0))
+def hsv_to_rgb(h,s,v):
+  return colorsys.hls_to_rgb(int(h*255.0),int(s*255.0),int(v*255.0))
+def rgb_to_hsv(r,g,b):
+  return colorsys.rgb_to_hsv(r/255,g/255,b/255)
+def rgb_to_hls(r,g,b):
+  return colorsys.rgb_to_hls(r/255,g/255,b/255)
+
 """ TODO: index colors via bitshift representation
     rather than hex conversion """
 def getHex(color, mode='rgb'):
   "Get color hex value from rgb (or rgba)"
   if 'hsv' == mode:
-    rgb = colorsys.hsv_to_rgb(*(color[:3]))
+    rgb = hsv_to_rgb(*(color[:3]))
   elif 'hls' == mode:
-    rgb = colorsys.hls_to_rgb(*(color[:3]))
+    rgb = hls_to_rgb(*(color[:3]))
   else:
     rgb = color[:3]
   return ''.join(map(lambda t: hex(int(t)).split('x',1)[1], rgb))
@@ -68,9 +78,9 @@ def phixelate(img, palette, blockSize, mode='rgb'):
       """ TODO: store converted RGB values to prevent duplicate
           calls to colorsys """
       if 'hsv' == mode:
-        container = map(lambda co: colorsys.rgb_to_hsv(*(co[:3])), container)
+        container = map(lambda co: rgb_to_hsv(*(co[:3])), container)
       if 'hls' == mode:
-        container = map(lambda co: colorsys.rgb_to_hls(*(co[:3])), container)
+        container = map(lambda co: rgb_to_hls(*(co[:3])), container)
 
       # Convert a block to one color -- take the average, and find closest palette color
       color = averagePixel(container, mode)
@@ -78,9 +88,9 @@ def phixelate(img, palette, blockSize, mode='rgb'):
 
       # Convert back to rgb if we're in hsv or hls mode
       if 'hsv' == mode:
-        color = list(colorsys.hsv_to_rgb(*color))
+        color = list(hsv_to_rgb(*color))
       if 'hls' == mode:
-        color = list(colorsys.hls_to_rgb(*color))
+        color = list(hls_to_rgb(*color))
 
       # stick alpha channel back on and convert to tuple
       color.append(avg_alpha)
@@ -95,9 +105,9 @@ def phixelate(img, palette, blockSize, mode='rgb'):
 def generatePalette(img, mode='rgb'):
   "Generate a palette json file from an image. Image should NOT have an alpha value!"
   if 'hsv' == mode:
-    transform = lambda (_,rgb): list(colorsys.rgb_to_hsv(*rgb))
+    transform = lambda (_,rgb): list(rgb_to_hsv(*rgb))
   elif 'hls' == mode:
-    transform = lambda (_,rgb): list(colorsys.rgb_to_hls(*rgb))
+    transform = lambda (_,rgb): list(rgb_to_hls(*rgb))
   else:
     transform = lambda (_,rgb): list(rgb)
   return json.dumps(map(transform, img.getcolors(img.size[0]*img.size[1])))
@@ -159,9 +169,9 @@ if __name__=="__main__":
     # To simplify things, the custom palette generator only makes rgb files,
     # so it's fairly safe to assume that's what we're getting.
     if 'hsv' == args.mode:
-      palette = map(lambda rgb: colorsys.rgb_to_hsv(*rgb), palette)
+      palette = map(lambda rgb: rgb_to_hsv(*rgb), palette)
     elif 'hls' == args.mode:
-      palette = map(lambda rgb: colorsys.rgb_to_hls(*rgb), palette)
+      palette = map(lambda rgb: rgb_to_hls(*rgb), palette)
   elif args.palette is not None: 
     try:
       path = os.sep.join([os.path.dirname(os.path.realpath(__file__)),'palettes',args.mode,args.palette])
