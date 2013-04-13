@@ -17,7 +17,7 @@ def rgb_to_hls(r,g,b):
     rather than hex conversion """
 def getHex(color, mode='rgb'):
   "Get color hex value from rgb (or rgba)"
-  if 'hsv' == mode:
+  if   'hsv' == mode:
     rgb = hsv_to_rgb(*(color[:3]))
   elif 'hls' == mode:
     rgb = hls_to_rgb(*(color[:3]))
@@ -104,7 +104,7 @@ def phixelate(img, palette, blockSize, mode='rgb'):
 
 def generatePalette(img, mode='rgb'):
   "Generate a palette json file from an image. Image should NOT have an alpha value!"
-  if 'hsv' == mode:
+  if   'hsv' == mode:
     transform = lambda (_,rgb): list(rgb_to_hsv(*rgb))
   elif 'hls' == mode:
     transform = lambda (_,rgb): list(rgb_to_hls(*rgb))
@@ -168,7 +168,7 @@ if __name__=="__main__":
     args.custom.close()
     # To simplify things, the custom palette generator only makes rgb files,
     # so it's fairly safe to assume that's what we're getting.
-    if 'hsv' == args.mode:
+    if   'hsv' == args.mode:
       palette = map(lambda rgb: rgb_to_hsv(*rgb), palette)
     elif 'hls' == args.mode:
       palette = map(lambda rgb: rgb_to_hls(*rgb), palette)
@@ -188,7 +188,7 @@ if __name__=="__main__":
     width,height = img.size
     newWidth = int((width // args.block) * args.block)
     newHeight = int((height // args.block) * args.block)
-    if 'tl' == args.crop: cropsize = (0,0,newWidth,newHeight)
+    if   'tl' == args.crop: cropsize = (0,0,newWidth,newHeight)
     elif 'tr' == args.crop: cropsize = (width-newWidth,0,width,newHeight)
     elif 'bl' == args.crop: cropsize = (0,height-newHeight,newWidth,height)
     elif 'br' == args.crop: cropsize = (width-newWidth,height-newHeight,width,height)
