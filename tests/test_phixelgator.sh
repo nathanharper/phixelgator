@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-../phixelgator.py -p appleii cat.jpg appleii.png
-../phixelgator.py -p atari2600 cat.jpg atari2600.png
-../phixelgator.py -p commodore64 cat.jpg commodore64.png
-../phixelgator.py -p contra cat.jpg contra.png
-../phixelgator.py -p gameboy cat.jpg gameboy.png
-../phixelgator.py -p grayscale cat.jpg grayscale.png
-../phixelgator.py -p hyrule cat.jpg hyrule.png
-../phixelgator.py -p intellivision cat.jpg intellivision.png
-../phixelgator.py -p kungfu cat.jpg kungfu.png
-../phixelgator.py -p mario cat.jpg mario.png
-../phixelgator.py -p nes cat.jpg nes.png
-../phixelgator.py -p sega cat.jpg sega.png
-../phixelgator.py -p tetris cat.jpg tetris.png
+../phixelgator.py -p appleii ernie.jpg appleii.png
+../phixelgator.py -p atari2600 ernie.jpg atari2600.png
+../phixelgator.py -p commodore64 ernie.jpg commodore64.png
+../phixelgator.py -p contra ernie.jpg contra.png
+../phixelgator.py -p gameboy ernie.jpg gameboy.png
+../phixelgator.py -p grayscale ernie.jpg grayscale.png
+../phixelgator.py -p hyrule ernie.jpg hyrule.png
+../phixelgator.py -p intellivision ernie.jpg intellivision.png
+../phixelgator.py -p kungfu ernie.jpg kungfu.png
+../phixelgator.py -p mario ernie.jpg mario.png
+../phixelgator.py -p nes ernie.jpg nes.png
+../phixelgator.py -p sega ernie.jpg sega.png
+../phixelgator.py -p tetris ernie.jpg tetris.png

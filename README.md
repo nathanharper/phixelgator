@@ -13,7 +13,7 @@ sudo easy_install PIL
 sudo easy_install argparse
 </pre>
 
-On Windows, you can just get the installers from the site or whatever the hell people do on Windows.
+On Windows, you can just get the installers from the site or whatever people do on Windows :P
 
 Once that stuff is done, checkout the repo, and make sure it's executable:
 
@@ -28,4 +28,7 @@ That's it! The last line in there should print the help info, which should be ve
 
 <h2>Acknowledgement</h2>
 This tool is *heavily* inspired by this site: http://superpixeltime.com/
-One might even say that I just ported it to Python! So, many thanks to the creators.
+<br />
+One might even say that I just ported it to Python! So, many thanks to the creators. They are:
+<br />
+<a href="http://www.johnnylml.com/">John Lee</a> and <a href="http://famousaspect.com/">Ethan Levy</a>
