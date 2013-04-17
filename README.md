@@ -31,7 +31,7 @@ Here's a before and after of my cat using the Atari 2600 color palette.
 
 <img src="tests/ernie.jpg" />
 
-Then you do a little... `phixelgator.py -p atari2600 ernie.jpg atari2600.png`
+Then you do a little... `phixelgator.py -b4 -p atari2600 ernie.jpg atari2600.png`
 
 <img src="tests/atari2600.png" />
 
@@ -40,52 +40,54 @@ And voila!
 Here are the other default palettes.
 
 <h3>Apple II</h3>
-`phixelgator.py -p appleii ernie.jpg appleii.png`
+`phixelgator.py -b4 -p appleii ernie.jpg appleii.png`
 <img src="tests/appleii.png" />
 
 <h3>Commodore 64</h3>
-`phixelgator.py -p commodore64 ernie.jpg commodore64.png`
+`phixelgator.py -b4 -p commodore64 ernie.jpg commodore64.png`
 <img src="tests/commodore64.png" />
 
 <h3>Contra</h3>
-`phixelgator.py -p contra ernie.jpg contra.png`
+`phixelgator.py -b4 -p contra ernie.jpg contra.png`
 <img src="tests/contra.png" />
 
 <h3>Gameboy</h3>
-`phixelgator.py -p gameboy ernie.jpg gameboy.png`
+`phixelgator.py -b4 -p gameboy ernie.jpg gameboy.png`
 <img src="tests/gameboy.png" />
 
 <h3>Grayscale</h3>
-`phixelgator.py -p grayscale ernie.jpg grayscale.png`
+`phixelgator.py -b4 -p grayscale ernie.jpg grayscale.png`
 <img src="tests/grayscale.png" />
 
 <h3>Hyrule</h3>
-`phixelgator.py -p hyrule ernie.jpg hyrule.png`
+`phixelgator.py -b4 -p hyrule ernie.jpg hyrule.png`
 <img src="tests/hyrule.png" />
 
 <h3>Intellivision</h3>
-`phixelgator.py -p intellivision ernie.jpg intellivision.png`
+`phixelgator.py -b4 -p intellivision ernie.jpg intellivision.png`
 <img src="tests/intellivision.png" />
 
 <h3>Kungfu</h3>
-`phixelgator.py -p kungfu ernie.jpg kungfu.png`
+`phixelgator.py -b4 -p kungfu ernie.jpg kungfu.png`
 <img src="tests/kungfu.png" />
 
 <h3>Super Mario Bros.</h3>
-`phixelgator.py -p mario ernie.jpg mario.png`
+`phixelgator.py -b4 -p mario ernie.jpg mario.png`
 <img src="tests/mario.png" />
 
 <h3>NES</h3>
-`phixelgator.py -p nes ernie.jpg nes.png`
+`phixelgator.py -b4 -p nes ernie.jpg nes.png`
 <img src="tests/nes.png" />
 
 <h3>Sega</h3>
-`phixelgator.py -p sega ernie.jpg sega.png`
+`phixelgator.py -b4 -p sega ernie.jpg sega.png`
 <img src="tests/sega.png" />
 
 <h3>Tetris</h3>
-`phixelgator.py -p tetris ernie.jpg tetris.png`
+`phixelgator.py -b4 -p tetris ernie.jpg tetris.png`
 <img src="tests/tetris.png" />
+
+Mileage may vary depending on the palette you used, the colors used in the original image, the size of the original image, and the block size selected. All the samples above are using 4x4 monochrome blocks, but in many cases the default 8 will suffice.
 
 <h2>Acknowledgement</h2>
 This tool is *heavily* inspired by this site: http://superpixeltime.com/
