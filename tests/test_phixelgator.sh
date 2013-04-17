@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ../phixelgator.py -p appleii ernie.jpg appleii.png
-../phixelgator.py -p atari2600 ernie.jpg atari2600.png
+# ../phixelgator.py -p atari2600 ernie.jpg atari2600.png
 ../phixelgator.py -p commodore64 ernie.jpg commodore64.png
 ../phixelgator.py -p contra ernie.jpg contra.png
 ../phixelgator.py -p gameboy ernie.jpg gameboy.png
