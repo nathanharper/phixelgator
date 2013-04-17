@@ -27,7 +27,7 @@ def getHex(color, mode='rgb'):
 
 def colorDiff(c1, c2):
   "Calculates difference betwixt two colors."
-  return sum(map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3])))
+  return sum(map(lambda (x,y): (x-y)**2, zip(c1[:3],c2[:3])))
 
 def colorDiffWheighted(c1, c2, mode='hsv'):
   "HSV and HLS should have different weights... TODO: decide what they are :P"
