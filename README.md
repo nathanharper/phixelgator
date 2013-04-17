@@ -26,6 +26,17 @@ chmod +x phixelgator.py
 
 That's it! The last line in there should print the help info, which should be very up-to-date. You can also check out the bash scripts in the "tests" directory if you want to see some examples.
 
+<h2>Examples</h2>
+Here's a before and after of my cat using the Atari 2600 color palette.
+
+<img src="tests/ernie.jpg" />
+
+Then you do a little... `phixelgator.py -p atari2600 ernie.jpg atari2600.png`
+
+<img src="atari2600.png" />
+
+And voila!
+
 <h2>Acknowledgement</h2>
 This tool is *heavily* inspired by this site: http://superpixeltime.com/
 <br />
