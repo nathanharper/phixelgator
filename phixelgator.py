@@ -117,6 +117,17 @@ def exitScript(args, code):
   args.outfile.close()
   sys.exit(code)
 
+def phixelCrop(img, block_size, orientation='tl'):
+  "Crop the image so that it fits the block size evenly"
+  width,height = img.size
+  newWidth = int((width // block_size) * block_size)
+  newHeight = int((height // block_size) * block_size)
+  if   'tl' == orientation: cropsize = (0,0,newWidth,newHeight)
+  elif 'tr' == orientation: cropsize = (width-newWidth,0,width,newHeight)
+  elif 'bl' == orientation: cropsize = (0,height-newHeight,newWidth,height)
+  elif 'br' == orientation: cropsize = (width-newWidth,height-newHeight,width,height)
+  return img.crop(cropsize)
+
 if __name__=="__main__":
   parse = argparse.ArgumentParser( \
       description='Create "pixel art" from a photo', prog='phixelgator', \
@@ -183,16 +194,8 @@ if __name__=="__main__":
 
   img = Image.open(args.infile).convert('RGBA')
 
-  """ Crop the image so that it fits the block size evenly """
   if args.crop:
-    width,height = img.size
-    newWidth = int((width // args.block) * args.block)
-    newHeight = int((height // args.block) * args.block)
-    if   'tl' == args.crop: cropsize = (0,0,newWidth,newHeight)
-    elif 'tr' == args.crop: cropsize = (width-newWidth,0,width,newHeight)
-    elif 'bl' == args.crop: cropsize = (0,height-newHeight,newWidth,height)
-    elif 'br' == args.crop: cropsize = (width-newWidth,height-newHeight,width,height)
-    img = img.crop(cropsize)
+    img = phixelCrop(img, args.block, args.crop)
 
   phixelate(img, palette, args.block, args.mode)
 
