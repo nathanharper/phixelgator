@@ -90,8 +90,6 @@ Here are the other default palettes.
 Mileage may vary depending on the palette you used, the colors used in the original image, the size of the original image, and the block size selected. All the samples above are using 4x4 monochrome blocks, but in many cases the default 8 will suffice.
 
 <h2>Acknowledgement</h2>
-This tool is *heavily* inspired by this site: http://superpixeltime.com/
-<br />
-One might even say that I just ported it to Python! So, many thanks to the creators. They are:
+This tool is *heavily* inspired by this site (which is now down) that was created by:
 <br />
 <a href="http://www.johnnylml.com/">John Lee</a> and <a href="http://famousaspect.com/">Ethan Levy</a>
