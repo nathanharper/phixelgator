@@ -31,7 +31,7 @@ def colorDiff(c1, c2):
 
 def colorDiffWheighted(c1, c2, mode='hsv'):
   "HSV and HLS should have different weights... TODO: decide what they are :P"
-  diff_pix = map(lambda x, y: abs(x-y), zip(c1[:3],c2[:3]))
+  diff_pix = map(lambda x: abs(x[0] - x[1]), list(zip(c1[:3],c2[:3])))
   return (diff_pix[0]*10) + (diff_pix[1]*10) + (diff_pix[2]*10)
 
 def averagePixel(data, mode='rgb'):
