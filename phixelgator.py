@@ -27,19 +27,19 @@ def getHex(color, mode='rgb'):
 
 def colorDiff(c1, c2):
   "Calculates difference betwixt two colors."
-  return sum(map(lambda (x,y): (x-y)**2, zip(c1[:3],c2[:3])))
+  return sum(map(lambda x: (x[0] - x[1])**2, list(zip(c1[:3],c2[:3]))))
 
 def colorDiffWheighted(c1, c2, mode='hsv'):
   "HSV and HLS should have different weights... TODO: decide what they are :P"
-  diff_pix = map(lambda (x,y): abs(x-y), zip(c1[:3],c2[:3]))
+  diff_pix = map(lambda x, y: abs(x-y), zip(c1[:3],c2[:3]))
   return (diff_pix[0]*10) + (diff_pix[1]*10) + (diff_pix[2]*10)
 
 def averagePixel(data, mode='rgb'):
   "Takes a list of pixel data tuples and finds average."
   if 'rgb' == mode:
-    return map(lambda x: int(round(sum(x) / len(data))), zip(*data)[:3])
+    return list(map(lambda x: int(round(sum(x) / len(data))), list(zip(*data))[:3]))
   else:
-    return map(lambda x: sum(x) / len(data), zip(*data)[:3])
+    return list(map(lambda x: sum(x) / len(data), zip(*data)[:3]))
 
 def getClosestColor(color, palette, hexdict, mode='rgb'):
   "Find the closest color in the current palette. TODO: optimize!"
@@ -73,7 +73,7 @@ def phixelate(img, palette, blockSize, mode='rgb'):
           container.append(rgb[xi+xOffset,yi+yOffset])
 
       # alpha isn't used in finding the color so just pop it off for later
-      avg_alpha = int(round(sum(zip(*container)[3]) / len(container)))
+      avg_alpha = int(round(sum(list(zip(*container))[3]) / len(container)))
 
       """ TODO: store converted RGB values to prevent duplicate
           calls to colorsys """
@@ -105,11 +105,11 @@ def phixelate(img, palette, blockSize, mode='rgb'):
 def generatePalette(img, mode='rgb'):
   "Generate a palette json file from an image. Image should NOT have an alpha value!"
   if   'hsv' == mode:
-    transform = lambda (_,rgb): list(rgb_to_hsv(*rgb))
+    transform = lambda _, rgb: list(rgb_to_hsv(*rgb))
   elif 'hls' == mode:
-    transform = lambda (_,rgb): list(rgb_to_hls(*rgb))
+    transform = lambda _, rgb: list(rgb_to_hls(*rgb))
   else:
-    transform = lambda (_,rgb): list(rgb)
+    transform = lambda _, rgb: list(rgb)
   return json.dumps(map(transform, img.getcolors(img.size[0]*img.size[1])))
 
 def exitScript(args, code):
@@ -188,7 +188,7 @@ if __name__=="__main__":
       path = os.sep.join([os.path.dirname(os.path.realpath(__file__)),'palettes',args.mode,args.palette])
       with open(path + '.json', 'r') as f:
         palette = json.loads(f.read())
-    except Exception, e:
+    except Exception as e:
       sys.stderr.write("No palette loaded")
       palette = False
 
@@ -205,7 +205,7 @@ if __name__=="__main__":
       imgWidth, imgHeight = map(int, args.dimensions.split('x',1))
       resized_img = img.resize((imgWidth, imgHeight))
       resized_img.save(args.outfile, args.type)
-    except Exception, e:
+    except Exception as e:
       sys.stderr.write("Failed to resize image")
       img.save(args.outfile, args.type)
   else:
